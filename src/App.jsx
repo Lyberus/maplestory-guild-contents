@@ -34,18 +34,23 @@ function App() {
   const workerRef = useRef(null);
   const [isWorkerReady, setIsWorkerReady] = useState(false);
 
+  // For Debug
+  const debugCanvasRef = useRef(null);
+
   useEffect(() => {
     workerRef.current = new Worker(new URL('./utils/opencv.worker.js', import.meta.url));
-    workerRef.current.onmessage = (e) => {
+    workerRef.current.onmessage = async (e) => {
       if (e.data.type === 'READY') {
-        console.log("OpenCV is ready.");
         setIsWorkerReady(true);
       }
       else if (e.data.type === 'RESULT') {
         const analyzedData = e.data.payload;
-        console.log('source:', e.data.source, 'payload:', analyzedData);
 
-        setRecords((prev) => prev.concat(analyzedData));
+        if (analyzedData) setRecords((prev) => {
+          const map = new Map();
+          [...prev, ...analyzedData].forEach(item => { map.set(item.name, item); });
+          return Array.from(map.values());
+        });
       }
     };
 

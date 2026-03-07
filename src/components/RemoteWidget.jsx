@@ -58,7 +58,7 @@ export default function RemoteWidget({ isDark, captureController, records, setRe
       });
 
     } catch (error) {
-      console.error('PIP 열기 실패:', error);
+      console.warn('PIP 열기 실패:', error);
     }
   };
 

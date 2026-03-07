@@ -16,7 +16,7 @@ export default function useScreenCapture({ onStreamReady }) {
                 stopCapture();
             };
         } catch (error) {
-            console.error("화면 캡쳐 취소 또는 실프:", error);
+            console.warn("화면 캡쳐 취소 또는 실패:", error);
         }
     }, [onStreamReady]);
 

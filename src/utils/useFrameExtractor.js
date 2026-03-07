@@ -6,8 +6,12 @@ export default function useFrameExtractor(stream, workerRef, intervalMs = 100) {
     const timeoutIdRef = useRef(null);
 
     useEffect(() => {
-        if (!stream || !workerRef.current) return;
+        if (!stream || !workerRef.current) {
+            isProcessingRef.current = false;
+            return;
+        }
 
+        isProcessingRef.current = false;
         const video = document.createElement('video');
         video.srcObject = stream;
         video.autoplay = true;

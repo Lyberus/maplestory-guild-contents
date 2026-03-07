@@ -7,8 +7,10 @@ export default function MainDashboard({ captureController, processManualImage, r
             {/* Dashboard Header & Controls */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Dashboard</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">이미지 분석</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">캡쳐 또는 클립보드, 업로드 버튼을 통해서 이미지를 분석하세요.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">캡쳐는 반드시 메이플스토리 창으로 지정해야 정상적으로 작동합니다.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">마우스가 닉네임, 주간미션, 지하수로, 플래그레이스 점수를 가리지 않게 주의하세요.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     {
@@ -39,7 +41,7 @@ export default function MainDashboard({ captureController, processManualImage, r
                                 }
                                 alert("클립보드에 이미지가 없습니다.");
                             } catch (err) {
-                                console.error("클립보드 읽기 실패:", err);
+                                console.warn("클립보드 읽기 실패:", err);
                                 alert("클립보드 접근 권한이 거부되었거나 지원하지 않는 환경입니다.");
                             }
                         }}>
@@ -119,10 +121,10 @@ export default function MainDashboard({ captureController, processManualImage, r
                                     <td className="px-6 py-4 text-sm text-right font-mono text-sky-600 dark:text-sky-400">
                                         {record.week.toLocaleString('ko-KR')}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-right font-mono text-violet-600 dark:text-violet-400">
+                                    <td className="px-6 py-4 text-sm text-right font-mono text-teal-600 dark:text-teal-400">
                                         {record.culv.toLocaleString('ko-KR')}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-right font-mono text-teal-600 dark:text-teal-400">
+                                    <td className="px-6 py-4 text-sm text-right font-mono text-violet-600 dark:text-violet-400">
                                         {record.flag.toLocaleString('ko-KR')}
                                     </td>
                                     <td className="px-6 py-4 text-right">
