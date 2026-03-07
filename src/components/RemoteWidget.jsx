@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function RemoteWidget({ records, setRecords }) {
+export default function RemoteWidget({ isDark, captureController, records, setRecords }) {
   const [pipWindow, setPipWindow] = useState(null);
   const [pipContainer, setPipContainer] = useState(null);
+  
+  useEffect(() => {
+    if (pipWindow) {
+      const pipRoot = pipWindow.document.documentElement;
+      if (isDark) {
+        pipRoot.classList.add('dark');
+      } else {
+        pipRoot.classList.remove('dark');
+      }
+    }
+  }, [isDark, pipWindow]);
 
   const openPip = async () => {
     if (pipWindow || !('documentPictureInPicture' in window)) return;
@@ -31,12 +42,10 @@ export default function RemoteWidget({ records, setRecords }) {
         }
       });
 
-      // 2. 핵심 해결책: PIP 창 자체의 html과 body 태그 배경색을 다크모드에 동기화하고, 기본 여백(margin)을 날려버립니다.
       pipWin.document.documentElement.className = document.documentElement.className;
       pipWin.document.body.className = "m-0 p-0 bg-surface-light dark:bg-surface-dark overflow-hidden";
 
       const container = document.createElement('div');
-      // 컨테이너가 창 전체를 꽉 채우도록 w-full h-full 부여
       container.className = "w-full h-full flex flex-col";
       pipWin.document.body.appendChild(container);
       
@@ -72,10 +81,11 @@ export default function RemoteWidget({ records, setRecords }) {
           <span className="material-symbols-outlined text-[18px]">settings_remote</span>
           <span className="text-xs font-bold uppercase tracking-wider">Remote</span>
         </div>
-        <button 
-          onClick={isPip ? closePip : undefined} 
-          className="text-white/70 hover:text-white transition-colors"
-        >
+        <button className="text-white/70 hover:text-white transition-colors"
+          onClick={() => {
+            closePip();
+            captureController.stopCapture();
+          }}>
           <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -100,23 +110,22 @@ export default function RemoteWidget({ records, setRecords }) {
             <span className="material-symbols-outlined text-[16px]">
                {isPip ? 'close_fullscreen' : 'picture_in_picture_alt'}
             </span>
-            {isPip ? 'Close PIP Mode' : 'Toggle PIP Mode'}
+            {isPip ? 'PIP 모드 닫기' : 'PIP 모드 사용하기'}
           </button>
           
-          <div className="grid grid-cols-2 gap-2 mt-1">
-            <button className="flex items-center justify-center gap-1 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg text-xs font-bold transition-colors">
-              <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-              Start
-            </button>
-            <button className="flex items-center justify-center gap-1 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs font-bold transition-colors">
-              <span className="material-symbols-outlined text-[16px]">stop</span>
-              Stop
-            </button>
-          </div>
+          <button className="flex items-center justify-center gap-1 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs font-bold transition-colors"
+            onClick={() => {
+              closePip();
+              captureController.stopCapture();
+            }}>
+            <span className="material-symbols-outlined text-[16px]">stop</span>
+            화면 캡쳐 중지
+          </button>
+
           <button className="flex items-center justify-center gap-2 w-full py-2 mt-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg text-xs font-medium transition-colors"
             onClick={() => { setRecords(() => []); }} >
             <span className="material-symbols-outlined text-[16px]">replay</span>
-            Reset
+            기록 초기화
           </button>
         </div>
       </div>

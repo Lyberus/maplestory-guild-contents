@@ -1,6 +1,6 @@
 import exportToExcel from '../utils/ExportData';
 
-export default function MainDashboard({ records, setRecords }) {
+export default function MainDashboard({ captureController, processManualImage, records, setRecords }) {
   return (
     <main className="flex-1 overflow-y-auto p-6 md:p-10 relative">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -11,20 +11,56 @@ export default function MainDashboard({ records, setRecords }) {
                     <p className="text-slate-500 dark:text-slate-400 text-sm">캡쳐 또는 클립보드, 업로드 버튼을 통해서 이미지를 분석하세요.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                    <button
-                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-primary/30">
-                        <span className="material-symbols-outlined text-[18px]">videocam</span>
-                        Start Capture
-                    </button>
-                    <button
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors">
+                    {
+                        captureController.isRecording ?
+                        <button className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-red-500/30"
+                            onClick={() => captureController.stopCapture()}>
+                            <span className="material-symbols-outlined text-[18px]">stop_circle</span>
+                            화면 캡쳐 중지
+                        </button>
+                        :
+                        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-primary/30"
+                            onClick={() => captureController.startCapture()}>
+                            <span className="material-symbols-outlined text-[18px]">videocam</span>
+                            화면 캡쳐 시작
+                        </button>
+                    }
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
+                        onClick={async () => {
+                            try {
+                                const clipboardItems = await navigator.clipboard.read();
+                                for (const item of clipboardItems) {
+                                    const imageTypes = item.types.filter(type => type.startsWith('image/'));
+                                    if (imageTypes.length > 0) {
+                                        const blob = await item.getType(imageTypes[0]);
+                                        processManualImage(blob);
+                                        return;
+                                    }
+                                }
+                                alert("클립보드에 이미지가 없습니다.");
+                            } catch (err) {
+                                console.error("클립보드 읽기 실패:", err);
+                                alert("클립보드 접근 권한이 거부되었거나 지원하지 않는 환경입니다.");
+                            }
+                        }}>
                         <span className="material-symbols-outlined text-[18px]">content_paste</span>
-                        Paste Clipboard
+                        이미지 붙여넣기
                     </button>
-                    <button
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
+                        onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    processManualImage(file);
+                                }
+                            };
+                            input.click();
+                        }}>
                         <span className="material-symbols-outlined text-[18px]">upload_file</span>
-                        Upload File
+                        이미지 파일 선택
                     </button>
                 </div>
             </div>

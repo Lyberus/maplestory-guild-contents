@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import MainDashboard from './components/MainDashboard';
 import RemoteWidget from './components/RemoteWidget';
-
-const records_arr = [{name: "프네롯", week: 10, culv: 110000, flag: 1000}];
-  for (let i = 1; i < 100; i++)
-      records_arr.push(records_arr[0]);
+import useScreenCapture from './utils/useScreenCapture';
+import useFrameExtractor from './utils/useFrameExtractor';
 
 function App() {
+  // 다크모드
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     
@@ -16,9 +15,6 @@ function App() {
     }
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
-
-  const [isCapturing, setIsCapturing] = useState(true);
-  const [records, setRecords] = useState(records_arr);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -32,12 +28,73 @@ function App() {
     }
   }, [isDark]);
 
+  const [records, setRecords] = useState([]);
+
+  const [stream, setStream] = useState(null);
+  const workerRef = useRef(null);
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
+
+  useEffect(() => {
+    workerRef.current = new Worker(new URL('./utils/opencv.worker.js', import.meta.url));
+    workerRef.current.onmessage = (e) => {
+      if (e.data.type === 'READY') {
+        console.log("OpenCV is ready.");
+        setIsWorkerReady(true);
+      }
+      else if (e.data.type === 'RESULT') {
+        const analyzedData = e.data.payload;
+        console.log('source:', e.data.source, 'payload:', analyzedData);
+
+        setRecords((prev) => prev.concat(analyzedData));
+      }
+    };
+
+    return () => {
+      if (workerRef.current) workerRef.current.terminate();
+    };
+  }, []);
+
+  const handleStreamReady = (newStream) => {
+      setStream(newStream);
+  };
+  const captureController = useScreenCapture({ onStreamReady: handleStreamReady });
+
+  useEffect(() => {
+    if (!captureController.isRecording) setStream(null);
+  }, [captureController.isRecording]);
+
+  useFrameExtractor(stream, workerRef, 100);
+
+  const processManualImage = async (fileOrBlob) => {
+    if (!workerRef.current || !fileOrBlob) return;
+
+    try {
+      const bitmap = await createImageBitmap(fileOrBlob);
+      workerRef.current.postMessage({ type: 'PROCESS_IMAGE', payload: bitmap, source: 'MANUAL' }, [bitmap]);
+    }
+    catch (err) {
+      console.error("수동 이미지 전송 실패:", err);
+    }
+  };
+
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col relative overflow-hidden">
+      {!isWorkerReady && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
+          <div className="w-12 h-12 mb-4 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+            로딩 중...
+          </h2>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            네트워크 상태에 따라 몇 초 정도 소요될 수 있습니다.
+          </p>
+        </div>
+      )}
+
       <Header isDark={isDark} setIsDark={setIsDark} />
-      
-      <MainDashboard records={records} setRecords={setRecords} />
-      {isCapturing && <RemoteWidget records={records} setRecords={setRecords} />}
+      <MainDashboard captureController={captureController} processManualImage={processManualImage} records={records} setRecords={setRecords} />
+      {captureController.isRecording && <RemoteWidget isDark={isDark} captureController={captureController} records={records} setRecords={setRecords} />}
     </div>
   );
 }
