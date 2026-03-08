@@ -1,4 +1,6 @@
-self.importScripts('/opencv.js');
+const public_path = '/maplestory-guild-contents'
+
+self.importScripts(`${public_path}/opencv.js`);
 
 let isCvReady = false;
 
@@ -34,7 +36,7 @@ cv['onRuntimeInitialized'] = async () => {
         lutArray[i] = Math.round(Math.min(255, Math.pow(i / 255.0, gamma) * 255.0));
     lutMat.data.set(lutArray);
 
-    const ocr_raw = await fetch('/ocr.json');
+    const ocr_raw = await fetch(`${public_path}/ocr.json`);
     const src = await ocr_raw.text();
     const result = JSON.parse(src, (key, value) => {
         if (key === 'next') {
@@ -48,7 +50,7 @@ cv['onRuntimeInitialized'] = async () => {
     OCR_Trie = result;
 
     try {
-        const response = await fetch('/anchor.png'); 
+        const response = await fetch(`${public_path}/anchor.png`); 
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
 
@@ -70,7 +72,7 @@ cv['onRuntimeInitialized'] = async () => {
 
     for (const kind of ['1366x768', '1920x1080', '1920x1200', '2560x1440', '2560x1600', '2732x1536', '3840x2160']) {
         try {
-            const response = await fetch(`/${kind}.png`); 
+            const response = await fetch(`${public_path}/${kind}.png`); 
             const blob = await response.blob();
             const bitmap = await createImageBitmap(blob);
 
@@ -257,7 +259,7 @@ function processImage(imageBitmap) {
             flagRoi.delete();
 
             if (name && week && culv && flag) {
-                res.push({ name, week: parseInt(week.replaceAll(',', '')), culv: parseInt(culv.replaceAll(',', '')), flag: parseInt(flag.replaceAll(',', '.')) });
+                res.push({ name, week: parseInt(week.replaceAll(',', '')), culv: parseInt(culv.replaceAll(',', '')), flag: parseInt(flag.replaceAll(',', '')) });
             }
         }
 

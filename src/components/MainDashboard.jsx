@@ -5,65 +5,96 @@ export default function MainDashboard({ captureController, processManualImage, r
     <main className="flex-1 overflow-y-auto p-6 md:p-10 relative">
         <div className="max-w-7xl mx-auto space-y-8">
             {/* Dashboard Header & Controls */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">이미지 분석</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">캡쳐 또는 클립보드, 업로드 버튼을 통해서 이미지를 분석하세요.</p>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">캡쳐는 반드시 메이플스토리 창으로 지정해야 정상적으로 작동합니다.</p>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">마우스가 닉네임, 주간미션, 지하수로, 플래그레이스 점수를 가리지 않게 주의하세요.</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                    {
-                        captureController.isRecording ?
-                        <button className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-red-500/30"
-                            onClick={() => captureController.stopCapture()}>
-                            <span className="material-symbols-outlined text-[18px]">stop_circle</span>
-                            화면 캡쳐 중지
-                        </button>
-                        :
-                        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-primary/30"
-                            onClick={() => captureController.startCapture()}>
-                            <span className="material-symbols-outlined text-[18px]">videocam</span>
-                            화면 캡쳐 시작
-                        </button>
-                    }
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
-                        onClick={async () => {
-                            try {
-                                const clipboardItems = await navigator.clipboard.read();
-                                for (const item of clipboardItems) {
-                                    const imageTypes = item.types.filter(type => type.startsWith('image/'));
-                                    if (imageTypes.length > 0) {
-                                        const blob = await item.getType(imageTypes[0]);
-                                        processManualImage(blob);
-                                        return;
+            <div className="space-y-6">
+                {/* 1. Title & Action Buttons */}
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">길드원 참여 현황 분석</h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                            캡쳐, 클립보드 또는 파일 업로드를 통해 <strong>'길드원 참여 현황'</strong> 데이터를 자동으로 추출하세요.
+                        </p>
+                    </div>
+                    
+                    {/* Buttons */}
+                    <div className="flex flex-wrap gap-3">
+                        {
+                            captureController.isRecording ?
+                            <button className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-red-500/30"
+                                onClick={() => captureController.stopCapture()}>
+                                <span className="material-symbols-outlined text-[18px]">stop_circle</span>
+                                화면 캡쳐 중지
+                            </button>
+                            :
+                            <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium text-sm transition-colors shadow-sm shadow-primary/30"
+                                onClick={() => captureController.startCapture()}>
+                                <span className="material-symbols-outlined text-[18px]">videocam</span>
+                                화면 캡쳐 시작
+                            </button>
+                        }
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
+                            onClick={async () => {
+                                try {
+                                    const clipboardItems = await navigator.clipboard.read();
+                                    for (const item of clipboardItems) {
+                                        const imageTypes = item.types.filter(type => type.startsWith('image/'));
+                                        if (imageTypes.length > 0) {
+                                            const blob = await item.getType(imageTypes[0]);
+                                            processManualImage(blob);
+                                            return;
+                                        }
                                     }
+                                    alert("클립보드에 이미지가 없습니다.");
+                                } catch (err) {
+                                    console.warn("클립보드 읽기 실패:", err);
+                                    alert("클립보드 접근 권한이 거부되었거나 지원하지 않는 환경입니다.");
                                 }
-                                alert("클립보드에 이미지가 없습니다.");
-                            } catch (err) {
-                                console.warn("클립보드 읽기 실패:", err);
-                                alert("클립보드 접근 권한이 거부되었거나 지원하지 않는 환경입니다.");
-                            }
-                        }}>
-                        <span className="material-symbols-outlined text-[18px]">content_paste</span>
-                        이미지 붙여넣기
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
-                        onClick={() => {
-                            const input = document.createElement('input');
-                            input.type = 'file';
-                            input.accept = 'image/*';
-                            input.onchange = (e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    processManualImage(file);
-                                }
-                            };
-                            input.click();
-                        }}>
-                        <span className="material-symbols-outlined text-[18px]">upload_file</span>
-                        이미지 파일 선택
-                    </button>
+                            }}>
+                            <span className="material-symbols-outlined text-[18px]">content_paste</span>
+                            이미지 붙여넣기
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
+                            onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = (e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        processManualImage(file);
+                                    }
+                                };
+                                input.click();
+                            }}>
+                            <span className="material-symbols-outlined text-[18px]">upload_file</span>
+                            파일 선택
+                        </button>
+                    </div>
+                </div>
+
+                {/* 2. Instruction Guide Box */}
+                <div className="p-4 md:p-5 bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-900/30 rounded-xl">
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="material-symbols-outlined text-sky-600 dark:text-sky-400 text-[20px]">info</span>
+                        <h3 className="font-semibold text-sky-800 dark:text-sky-300 text-sm">실시간 화면 캡쳐 가이드</h3>
+                    </div>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-sky-700 dark:text-sky-400/90">
+                        <li className="flex items-start gap-2">
+                            <span className="material-symbols-outlined text-[16px] mt-0.5 opacity-70">desktop_windows</span>
+                            <span>공유 대상은 반드시 <strong>메이플스토리 창</strong>으로 지정해 주세요.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="material-symbols-outlined text-[16px] mt-0.5 opacity-70">mouse</span>
+                            <span>마우스 커서가 <strong>닉네임이나 점수</strong>를 가리지 않게 주의해주세요.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="material-symbols-outlined text-[16px] mt-0.5 opacity-70">swipe_down</span>
+                            <span>데이터가 기록되는 것을 확인하며 <strong>천천히 스크롤</strong>해 주세요.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="material-symbols-outlined text-[16px] mt-0.5 opacity-70">stop_circle</span>
+                            <span>인식이 모두 완료되면 <strong>공유 중지</strong> 버튼을 눌러 종료하세요.</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
             {/* Secondary Actions */}
@@ -84,7 +115,7 @@ export default function MainDashboard({ captureController, processManualImage, r
             </div>
             {/* Data Table */}
             <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
-                <div className="overflow-x-auto overflow-y-auto scrollbar-hide max-h-[550px]">
+                <div className="overflow-x-auto overflow-y-auto scrollbar-hide min-h-[300px] max-h-[500px]">
                     <table className="w-full text-left border-collapse relative">
                         <thead>
                             <tr className="border-b border-border-light dark:border-border-dark">
