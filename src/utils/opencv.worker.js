@@ -6,6 +6,7 @@ let isCvReady = false;
 
 let patterns = {};
 let templateMat = null;
+let exceptMat = null;
 let resultMat = null;
 
 let tempMat1 = null;
@@ -62,6 +63,27 @@ cv['onRuntimeInitialized'] = async () => {
         
         templateMat = new cv.Mat();
         cv.cvtColor(rgbaMat, templateMat, cv.COLOR_RGBA2GRAY);
+
+        rgbaMat.delete();
+        bitmap.close();
+
+    } catch (err) {
+        console.error("워커 템플릿 이미지 로드 실패:", err);
+    }
+
+    try {
+        const response = await fetch(`${public_path}/except.png`); 
+        const blob = await response.blob();
+        const bitmap = await createImageBitmap(blob);
+
+        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(bitmap, 0, 0);
+
+        let rgbaMat = cv.matFromImageData(ctx.getImageData(0, 0, bitmap.width, bitmap.height));
+        
+        exceptMat = new cv.Mat();
+        cv.cvtColor(rgbaMat, exceptMat, cv.COLOR_RGBA2GRAY);
 
         rgbaMat.delete();
         bitmap.close();
@@ -230,12 +252,16 @@ function processImage(imageBitmap) {
         let maxPoint = result.maxLoc;
         let maxVal = result.maxVal;
 
-        if (maxVal < 0.8) return [];
+        if (maxVal < 0.9) return [];
 
         let anchor = { x: maxPoint.x, y: maxPoint.y };
         let rect = new cv.Rect(anchor.x, anchor.y, 480, 450);
         if (rect.x + rect.width > tempMat2.cols || rect.y + rect.height > tempMat2.rows) return [];
         roi = tempMat2.roi(rect);
+
+        cv.matchTemplate(roi, exceptMat, resultMat, cv.TM_CCOEFF_NORMED);;
+        let exceptVal = cv.minMaxLoc(resultMat).maxVal;
+        if (exceptVal > 0.9) return [];
 
         cv.filter2D(roi, tempMat1, cv.CV_8U, sharpenKernel);
         cv.LUT(tempMat1, lutMat, tempMat2);

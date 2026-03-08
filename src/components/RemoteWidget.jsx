@@ -16,6 +16,12 @@ export default function RemoteWidget({ isDark, captureController, records, setRe
     }
   }, [isDark, pipWindow]);
 
+  useEffect(() => {
+    return () => {
+      if (pipWindow) pipWindow.close();
+    };
+  }, [pipWindow]);
+
   const openPip = async () => {
     if (pipWindow || !('documentPictureInPicture' in window)) return;
 
