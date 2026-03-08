@@ -243,12 +243,12 @@ function processImage(imageBitmap) {
 
         const res = [];
         for (let i = 0; i < 17; i++) {
-            const yoff = i * 24 + 43; // 왜 44가 아니고 43이지??
-            let nameRoi = dst.roi(new cv.Rect(39, yoff, 77, 12));
+            const yoff = i * 24 + 43;
+            let nameRoi = dst.roi(new cv.Rect(39, yoff, 65, 12));
             let name = runTrieOCR(nameRoi);
             let weekRoi = dst.roi(new cv.Rect(299, yoff, 20, 12));
             let week = runTrieOCR(weekRoi);
-            let culvRoi = dst.roi(new cv.Rect(330, yoff, 79, 12));
+            let culvRoi = dst.roi(new cv.Rect(340, yoff, 70, 12));
             let culv = runTrieOCR(culvRoi);
             let flagRoi = dst.roi(new cv.Rect(434, yoff, 35, 12));
             let flag = runTrieOCR(flagRoi);
@@ -299,4 +299,16 @@ function runTrieOCR(mat) {
         }
     }
     return resultText;
+}
+
+function sendImageForDebug(mat) {
+    let debugMat = new cv.Mat();
+    cv.cvtColor(mat, debugMat, cv.COLOR_GRAY2RGBA);
+    const imgData = new ImageData(
+        new Uint8ClampedArray(debugMat.data), 
+        debugMat.cols, 
+        debugMat.rows
+    );
+    self.postMessage({ type: 'DEBUG', payload: imgData });
+    debugMat.delete();
 }

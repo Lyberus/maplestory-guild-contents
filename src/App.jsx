@@ -52,6 +52,16 @@ function App() {
           return Array.from(map.values());
         });
       }
+      else if (e.data.type === 'DEBUG') {
+          const imgData = e.data.payload;
+          const canvas = debugCanvasRef.current;
+          if (canvas) {
+            canvas.width = imgData.width;
+            canvas.height = imgData.height;
+            const ctx = canvas.getContext('2d');
+            ctx.putImageData(imgData, 0, 0);
+          }
+      }
     };
 
     return () => {
@@ -96,6 +106,16 @@ function App() {
           </p>
         </div>
       )}
+
+      {/*
+      <div className="absolute top-20 right-4 z-40 bg-white dark:bg-slate-800 p-2 rounded shadow-lg border border-slate-300 dark:border-slate-600">
+        <h3 className="text-xs font-bold text-red-500 mb-1">🛠️ Debug View</h3>
+        <canvas 
+          ref={debugCanvasRef} 
+          className="bg-black max-w-[400px] h-auto rounded"
+        />
+      </div>
+      */}
 
       <Header isDark={isDark} setIsDark={setIsDark} />
       <MainDashboard captureController={captureController} processManualImage={processManualImage} records={records} setRecords={setRecords} />
