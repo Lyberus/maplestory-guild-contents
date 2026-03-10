@@ -1,4 +1,4 @@
-const public_path = '/maplestory-guild-contents'
+const public_path = '';
 
 self.importScripts(`${public_path}/opencv.js`);
 
