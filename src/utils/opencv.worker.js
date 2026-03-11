@@ -14,7 +14,7 @@ let tempMat2 = null;
 let dst = null;
 let sharpenKernel = null;
 let lutMat = null;
-const threshold_val = 160;
+const threshold_val = 200;
 
 let OCR_Trie = null;
 
